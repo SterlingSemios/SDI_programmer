@@ -1,1 +1,7 @@
+*.launch
+.settings
+.vscode
+
+Debug/
+
 *.so

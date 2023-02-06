@@ -94,7 +94,7 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
-  printLog("SDI programmer initialized 22");
+  printLog("SDI programmer initialized 33");
 
   /* USER CODE END 2 */
 
