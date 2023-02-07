@@ -9,17 +9,17 @@ CDefines=USE_HAL_DRIVER;STM32G050xx;USE_HAL_DRIVER;USE_HAL_DRIVER;
 [PreviousGenFiles]
 AdvancedFolderStructure=true
 HeaderFileListSize=3
-HeaderFiles#0=/home/studido/Documents/STM32_aDev/STM32 SDI programmer/Core/Inc/stm32g0xx_it.h
-HeaderFiles#1=/home/studido/Documents/STM32_aDev/STM32 SDI programmer/Core/Inc/stm32g0xx_hal_conf.h
-HeaderFiles#2=/home/studido/Documents/STM32_aDev/STM32 SDI programmer/Core/Inc/main.h
+HeaderFiles#0=/home/studido/Documents/STM32_aDev/SDI_programmer/STM32_SDI_programmer/Core/Inc/stm32g0xx_it.h
+HeaderFiles#1=/home/studido/Documents/STM32_aDev/SDI_programmer/STM32_SDI_programmer/Core/Inc/stm32g0xx_hal_conf.h
+HeaderFiles#2=/home/studido/Documents/STM32_aDev/SDI_programmer/STM32_SDI_programmer/Core/Inc/main.h
 HeaderFolderListSize=1
-HeaderPath#0=/home/studido/Documents/STM32_aDev/STM32 SDI programmer/Core/Inc
+HeaderPath#0=/home/studido/Documents/STM32_aDev/SDI_programmer/STM32_SDI_programmer/Core/Inc
 HeaderFiles=;
 SourceFileListSize=3
-SourceFiles#0=/home/studido/Documents/STM32_aDev/STM32 SDI programmer/Core/Src/stm32g0xx_it.c
-SourceFiles#1=/home/studido/Documents/STM32_aDev/STM32 SDI programmer/Core/Src/stm32g0xx_hal_msp.c
-SourceFiles#2=/home/studido/Documents/STM32_aDev/STM32 SDI programmer/Core/Src/main.c
+SourceFiles#0=/home/studido/Documents/STM32_aDev/SDI_programmer/STM32_SDI_programmer/Core/Src/stm32g0xx_it.c
+SourceFiles#1=/home/studido/Documents/STM32_aDev/SDI_programmer/STM32_SDI_programmer/Core/Src/stm32g0xx_hal_msp.c
+SourceFiles#2=/home/studido/Documents/STM32_aDev/SDI_programmer/STM32_SDI_programmer/Core/Src/main.c
 SourceFolderListSize=1
-SourcePath#0=/home/studido/Documents/STM32_aDev/STM32 SDI programmer/Core/Src
+SourcePath#0=/home/studido/Documents/STM32_aDev/SDI_programmer/STM32_SDI_programmer/Core/Src
 SourceFiles=;
 
