@@ -3,7 +3,7 @@
 
 extern UART_HandleTypeDef huart2;
 
-void printLog(char* message)
+void printLog(const char* message)
 {
     int msgLen = strlen(message);
     char logMessage[msgLen + 3];

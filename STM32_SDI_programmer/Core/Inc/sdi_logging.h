@@ -1,3 +1,3 @@
 #include "main.h"
 
-void printLog(char* message);
+void printLog(const char* message);

@@ -104,9 +104,9 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    //  for(int i = 0; i < 8; i++)
+    //  for(int i = 0; i < 10; i++)
     //  {
-    //    sprintf(log, "Setting LED pin %d", i);
+    //    sprintf(log, "Setting LED to %d", i);
     //    printLog(log);
     //    setDigit(i);
     //    HAL_Delay(3000);
