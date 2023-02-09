@@ -24,6 +24,8 @@
 
 #include "sdi_logging.h"
 #include "led_commands.h"
+#include "sdi_commands.h"
+#include "sdi12_driver.h"
 
 /* USER CODE END Includes */
 
@@ -69,7 +71,6 @@ static void MX_USART1_UART_Init(void);
   */
 int main(void)
 {
-  char log[250];
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
@@ -96,7 +97,38 @@ int main(void)
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
 
+  printLog(".");
+  printLog(".");
+  printLog(".");
+  printLog(".");
+  printLog(".");
   printLog("SDI programmer initialized");
+  char            addy    = {0};
+
+  sdi12QuerySensorAddress(0, &addy);
+  printLog("SSMITH ADDY:");
+  printLog(&addy);
+  //enableSdi();
+
+  if(strncmp(&addy, "0", 1) == 0)
+  {
+    setDigit(0);
+  }
+  else if(strncmp(&addy, "1", 1) == 0)
+  {
+    setDigit(1);
+  }
+  else if(strncmp(&addy, "2", 1) == 0)
+  {
+    setDigit(2);
+  }
+  else if(strncmp(&addy, "3", 1) == 0)
+  {
+    setDigit(3);
+  }
+
+  char log[250];
+
 
   /* USER CODE END 2 */
 
@@ -104,6 +136,9 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
+    //readAddress();
+  
     //  for(int i = 0; i < 10; i++)
     //  {
     //    sprintf(log, "Setting LED to %d", i);
@@ -111,7 +146,20 @@ int main(void)
     //    setDigit(i);
     //    HAL_Delay(3000);
     //  }
-    HAL_Delay(500);
+    HAL_Delay(5000);
+
+
+    // printLog("----------");
+    // printLog("----------");
+    // printLog("----------");
+
+    // int enbPinState = HAL_GPIO_ReadPin(SDI_TX_ENB_GPIO_Port, SDI_TX_ENB_Pin);
+    // int txPinState = HAL_GPIO_ReadPin(SDI_TX_GPIO_Port, SDI_TX_Pin);
+    // int rxPinState = HAL_GPIO_ReadPin(SDI_RX_GPIO_Port, SDI_RX_Pin);
+    //sprintf(log, "loop state: Tx Enb: %d, Tx: %d, Rx: %d", enbPinState, txPinState, rxPinState);
+    //printLog(log);
+
+    //enableSdi();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -151,7 +199,7 @@ void SystemClock_Config(void)
                               |RCC_CLOCKTYPE_PCLK1;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
   {
@@ -175,7 +223,7 @@ static void MX_USART1_UART_Init(void)
 
   /* USER CODE END USART1_Init 1 */
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 115200;
+  huart1.Init.BaudRate = 1200;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
@@ -202,7 +250,7 @@ static void MX_USART1_UART_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN USART1_Init 2 */
-
+  __HAL_UART_ENABLE_IT(&huart1, UART_IT_RXNE);
   /* USER CODE END USART1_Init 2 */
 
 }
@@ -258,7 +306,7 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11|GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14
-                          |GPIO_PIN_15, GPIO_PIN_RESET);
+                          |GPIO_PIN_15|SDI_TX_ENB_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8|GPIO_PIN_9, GPIO_PIN_RESET);
@@ -278,6 +326,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : SDI_TX_ENB_Pin */
+  GPIO_InitStruct.Pin = SDI_TX_ENB_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  HAL_GPIO_Init(SDI_TX_ENB_GPIO_Port, &GPIO_InitStruct);
 
 }
 

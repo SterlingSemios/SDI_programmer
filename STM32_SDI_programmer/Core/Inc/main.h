@@ -59,7 +59,21 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define SDI_TX_ENB_Pin GPIO_PIN_5
+#define SDI_TX_ENB_GPIO_Port GPIOB
+#define SDI_TX_Pin GPIO_PIN_6
+#define SDI_TX_GPIO_Port GPIOB
+#define SDI_RX_Pin GPIO_PIN_7
+#define SDI_RX_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
+// #define SDI_TX_ENB_GPIO_Port GPIOB
+// #define SDI_TX_ENB_PIN GPIO_PIN_5
+// #define SDI_TX_GPIO_Port GPIOB
+// #define SDI_TX_PIN GPIO_PIN_6
+// #define SDI_RX_GPIO_Port GPIOB
+// #define SDI_RX_PIN GPIO_PIN_7
+
+
 
 /* USER CODE END Private defines */
 
