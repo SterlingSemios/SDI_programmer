@@ -144,11 +144,40 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
+  * @brief This function handles EXTI line 0 and line 1 interrupts.
+  */
+void EXTI0_1_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI0_1_IRQn 0 */
+  printLog("SSMITH DOWN button interrupt");
+
+  /* USER CODE END EXTI0_1_IRQn 0 */
+  HAL_GPIO_EXTI_IRQHandler(ButtonDown_Pin);
+  /* USER CODE BEGIN EXTI0_1_IRQn 1 */
+
+  /* USER CODE END EXTI0_1_IRQn 1 */
+}
+
+/**
+  * @brief This function handles EXTI line 4 to 15 interrupts.
+  */
+void EXTI4_15_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI4_15_IRQn 0 */
+  printLog("SSMITH UP button interrupt");
+
+  /* USER CODE END EXTI4_15_IRQn 0 */
+  HAL_GPIO_EXTI_IRQHandler(ButtonUp_Pin);
+  /* USER CODE BEGIN EXTI4_15_IRQn 1 */
+
+  /* USER CODE END EXTI4_15_IRQn 1 */
+}
+
+/**
   * @brief This function handles USART1 Interrupt.
   */
 void USART1_IRQHandler(void)
 {
-  printLog("SSMITH in rx interrupt");
   /* USER CODE BEGIN USART1_IRQn 0 */
   //receiveRx((char)READ_REG(huart1.Instance->RDR));
   if (__HAL_UART_GET_FLAG(&huart1, UART_FLAG_RXNE))

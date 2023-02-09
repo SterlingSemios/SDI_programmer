@@ -89,49 +89,54 @@ void enableSdi()
     printLog(log);
 }
 
-static SDI12RetCode sendCmd(Sdi12PinConfig *pinConfig)
+static SDI12RetCode sendCmd(Sdi12Handle *hSdi12)
 {
-    //NULL_PTR_CHECK(hSdi12, SDI12RetCode_INVALID);
+    NULL_PTR_CHECK(hSdi12, SDI12RetCode_INVALID);
 
     HAL_StatusTypeDef txRet;
     char byte;
-    char log[250];
 
-    char  tx_buf[2] = "!?";
-    char *tx_buf_p  = &tx_buf[0];
-    int   size      = 3;
+    //clean up previous state, if any
+    flagRxComplete = 0;
+    memset(rx_buf, '\0', strlen(rx_buf));
+    rxCnt = 0;
 
-    while (size)
+    while (sdi12Tx.size)
     {
-        if (1 < size)
+        if (1 < sdi12Tx.size)
         {
-            byte  = *(tx_buf_p++);
+            byte  = *(sdi12Tx.pTxBuf++);
             byte |= (calculateEvenParity(byte) << 7);
 
             timesend = HAL_GetTick();
-            txRet    = HAL_UART_Transmit(&huart1, (uint8_t *)&byte, 1,
-                                         SDI12_TX_TIMEOUT_MS);
+            printLog("SSMITH sending");
+            printLog(&byte);
+            txRet = HAL_UART_Transmit((hSdi12->hUART), (uint8_t *)&byte, 1,
+                                      SDI12_TX_TIMEOUT_MS);
+            //SemiosLogInfo("SSMITH sending: %c", byte);
             HAL_Delay(1); // to finish having Tx echoed back data on Rx properly
             if (txRet != HAL_OK)
             {
                 break;
             }
         }
-        --size;
+        --sdi12Tx.size;
     }
 
     if (txRet != HAL_OK)
     {
-       // printLog("SSMITH send ERROR");
+        printLog("SSMITH failed send");
         return (SDI12RetCode_TX_ERROR);
     }
     else
     {
-        //Reception mode
         printLog("SSMITH reception mode");
-        sdi_WritePin(&(pinConfig->sdiTxEnb), RECEPTION_MODE);
-        //int rxPinState = HAL_GPIO_ReadPin(SDI_RX_GPIO_Port, SDI_RX_Pin);
-        //flagEnterInSDI12RxMode = 1;
+        //SemiosLogInfo("SSMITH Wake - send time: %d", timesend - timewake);
+        //Reception mode
+        sdi12_WritePin(&hSdi12->Sdi12PinCfg.sdiTxEnb, RECEPTION_MODE);
+        //Get start time for wait
+       // txEndRxStartTime       = xTaskGetTickCount();
+       // flagEnterInSDI12RxMode = 1;
 
         return (SDI12RetCode_OK);
     }
@@ -197,7 +202,7 @@ void receiveRx(char sdiByte)
 void sdi_BusComm(Sdi12Handle *hSdi12, char *rxBuf,
                 uint8_t *rxSize, uint16_t rxTimeout)
 {
-    sdi12_wakeUpSignal(hSdi12->hUART, &(hSdi12->Sdi12PinCfg));
+    wakeUpSignal(hSdi12->hUART, &(hSdi12->Sdi12PinCfg));
 }
 
 

@@ -184,29 +184,29 @@ static SDI12RetCode sdi12_createCmdBuf(Sdi12Handle *hSdi12, SDI12Cmd commandNum)
         sdi12Tx.size = sprintf(tx_buf, &buf[0]);
         break;
 
-    case SDI12_START_MEAS:
-        if (createMesurementBuffer(buf, hSdi12->measurementIndex,
-                                   hSdi12->bitfieldModeFlags) !=
-            SDI12RetCode_OK)
-        {
-            return SDI12RetCode_ERROR;
-        }
-        if (hSdi12->measurementIndex > 0)
-        {
-            sdi12Tx.size = sprintf(tx_buf, &buf[0], hSdi12->sdi12Address,
-                                   hSdi12->measurementIndex);
-        }
-        else
-        {
-            sdi12Tx.size = sprintf(tx_buf, &buf[0], hSdi12->sdi12Address);
-        }
-        break;
+    // case SDI12_START_MEAS:
+    //     if (createMesurementBuffer(buf, hSdi12->measurementIndex,
+    //                                hSdi12->bitfieldModeFlags) !=
+    //         SDI12RetCode_OK)
+    //     {
+    //         return SDI12RetCode_ERROR;
+    //     }
+    //     if (hSdi12->measurementIndex > 0)
+    //     {
+    //         sdi12Tx.size = sprintf(tx_buf, &buf[0], hSdi12->sdi12Address,
+    //                                hSdi12->measurementIndex);
+    //     }
+    //     else
+    //     {
+    //         sdi12Tx.size = sprintf(tx_buf, &buf[0], hSdi12->sdi12Address);
+    //     }
+    //     break;
 
-    case SDI12_GET_DATA:
-        memcpy(&buf[0], strGetData, sizeof(strGetData));
-        sdi12Tx.size = sprintf(tx_buf, &buf[0], hSdi12->sdi12Address,
-                               hSdi12->measurementIndex);
-        break;
+    // case SDI12_GET_DATA:
+    //     memcpy(&buf[0], strGetData, sizeof(strGetData));
+    //     sdi12Tx.size = sprintf(tx_buf, &buf[0], hSdi12->sdi12Address,
+    //                            hSdi12->measurementIndex);
+    //     break;
 
     case SDI12_GET_ADD_DATA:
         memcpy(&buf[0], strGetAddData, sizeof(strGetAddData));
@@ -226,8 +226,12 @@ static SDI12RetCode sdi12_createCmdBuf(Sdi12Handle *hSdi12, SDI12Cmd commandNum)
     // Start Transmission mode
     sdi12_WritePin(&hSdi12->Sdi12PinCfg.sdiTxEnb, TRANSMISSION_MODE);
     flagEnterInSDI12RxMode = 0;
+    printLog("SSMITH txbuf:");
+    printLog(tx_buf);
 
     sdi12Tx.pTxBuf = &tx_buf[0];
+
+
     ++sdi12Tx.size;
 
     return SDI12RetCode_OK; // all good
@@ -379,7 +383,7 @@ SDI12RetCode sdi12_BusCommunication(Sdi12Handle *hSdi12, char *rxBuf,
 
     //read received data
     rv = sdi12_readResponse(rxSize, rxBuf, rxTimeout);
-    printLog(rxBuf);
+    //printLog(rxBuf);
     if (rv != SDI12RetCode_OK)
     {
         return (SDI12RetCode_RX_ERROR);

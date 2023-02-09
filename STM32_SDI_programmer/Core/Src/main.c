@@ -72,6 +72,10 @@ static void MX_USART1_UART_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+    char log[250];
+    char address_buf = {0};
+    char rxbuf[250];
+    int rxSize = 250;
 
   /* USER CODE END 1 */
 
@@ -97,6 +101,42 @@ int main(void)
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
 
+  //Init SDI handles
+
+  Sdi12PortPinMap sdiTxEnb =
+  {
+    .pGpioPort = SDI_TX_ENB_GPIO_Port,
+    .gpioPin   = SDI_TX_ENB_Pin
+  };
+
+  Sdi12PortPinMap sdiTx =
+  {
+    .pGpioPort = SDI_TX_GPIO_Port,
+    .gpioPin   = SDI_TX_Pin
+  };
+
+  Sdi12PinConfig pinConfig =
+  {
+    .sdiTx    = sdiTx,
+    .sdiTxEnb = sdiTxEnb
+  };
+
+  Sdi12Handle sensorHandle =
+  {
+    .Sdi12PinCfg = pinConfig,
+    .hUART = &huart1,
+    .sdi12IdNewOrQuery = address_buf
+  };
+
+  Sdi12Receive Sdi12Resp= {
+        .recBuf = rxbuf,
+        .recSize = rxSize
+    };
+
+  sdi12Init(&sensorHandle, &Sdi12Resp);
+
+
+
   printLog(".");
   printLog(".");
   printLog(".");
@@ -104,30 +144,72 @@ int main(void)
   printLog(".");
   printLog("SDI programmer initialized");
   char            addy    = {0};
+  char            sdi12AddrRequested = {0};
 
-  sdi12QuerySensorAddress(0, &addy);
-  printLog("SSMITH ADDY:");
-  printLog(&addy);
+  //sdi12QuerySensorAddress(&addy);
+  sdi12QueryAddress();
+  sprintf(log, "Current sensor address: %c", sensorHandle.sdi12IdNewOrQuery);
+  printLog(log);
   //enableSdi();
+  addy = sensorHandle.sdi12IdNewOrQuery;
 
   if(strncmp(&addy, "0", 1) == 0)
   {
     setDigit(0);
+    sdi12AddrRequested = '1';
   }
   else if(strncmp(&addy, "1", 1) == 0)
   {
     setDigit(1);
+    sdi12AddrRequested = '2';
   }
   else if(strncmp(&addy, "2", 1) == 0)
   {
     setDigit(2);
+    sdi12AddrRequested = '3';
   }
   else if(strncmp(&addy, "3", 1) == 0)
   {
     setDigit(3);
+    sdi12AddrRequested = '0';
   }
 
-  char log[250];
+  HAL_Delay(2000);
+
+  //sensorHandle.sdi12Address = addy;
+ //sensorHandle.sdi12IdNewOrQuery = sdi12AddrRequested
+
+
+  sdi12ChangeAddress(addy, sdi12AddrRequested);
+
+  printLog("Verify change:");
+  printChar(sensorHandle.sdi12IdNewOrQuery);
+  addy = sensorHandle.sdi12IdNewOrQuery;
+
+  if(strncmp(&addy, "0", 1) == 0)
+  {
+    setDigit(0);
+    sdi12AddrRequested = '1';
+  }
+  else if(strncmp(&addy, "1", 1) == 0)
+  {
+    setDigit(1);
+    sdi12AddrRequested = '2';
+  }
+  else if(strncmp(&addy, "2", 1) == 0)
+  {
+    setDigit(2);
+    sdi12AddrRequested = '3';
+  }
+  else if(strncmp(&addy, "3", 1) == 0)
+  {
+    setDigit(3);
+    sdi12AddrRequested = '0';
+  }
+
+
+
+
 
 
   /* USER CODE END 2 */
@@ -301,8 +383,10 @@ static void MX_GPIO_Init(void)
   GPIO_InitTypeDef GPIO_InitStruct = {0};
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11|GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14
@@ -310,6 +394,12 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8|GPIO_PIN_9, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : ButtonUp_Pin */
+  GPIO_InitStruct.Pin = ButtonUp_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(ButtonUp_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PB11 PB12 PB13 PB14
                            PB15 */
@@ -327,12 +417,25 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : ButtonDown_Pin */
+  GPIO_InitStruct.Pin = ButtonDown_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(ButtonDown_GPIO_Port, &GPIO_InitStruct);
+
   /*Configure GPIO pin : SDI_TX_ENB_Pin */
   GPIO_InitStruct.Pin = SDI_TX_ENB_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
   HAL_GPIO_Init(SDI_TX_ENB_GPIO_Port, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI0_1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI0_1_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI4_15_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
 
 }
 
