@@ -26,6 +26,7 @@
 #include "led_commands.h"
 #include "sdi_commands.h"
 #include "sdi12_driver.h"
+#include "sdi12Bus_communication.h"
 
 /* USER CODE END Includes */
 
@@ -36,6 +37,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define STD_WAIT_SENRESP_MS            (150)  /**< @brief SDI12 wait time for response as per standard*/
+#define SDI_STANDARD_WAIT_MS           (750)  /**< @brief SDI12 standard wait time for Address change and Identification command response as per standard */
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -72,10 +75,11 @@ static void MX_USART1_UART_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-    char log[250];
-    char address_buf = {0};
-    char rxbuf[250];
-    int rxSize = 250;
+  char log[250];
+  char address_buf = {0};
+  char rxbuf[250];
+  int rxSize = 250;
+  char addressArr[]=  {'0', '1', '2', '3'};
 
   /* USER CODE END 1 */
 
@@ -136,53 +140,26 @@ int main(void)
 
   sdi12Init(&sensorHandle, &Sdi12Resp, &buttonInterruptFlag);
 
+  printLog(".");
+  printLog(".");
+  printLog(".");
+  printLog(".");
+  printLog("..");
+  printLog("SDI programmer initialized2");
 
+  //sdi12QueryAddress();
+  SDI12RetCode retStat = 0;
 
-  printLog(".");
-  printLog(".");
-  printLog(".");
-  printLog(".");
-  printLog(".");
-  printLog("SDI programmer initialized");
-  char            addy    = {0};
-  char            sdi12AddrRequested = {0};
+  retStat = sdi12_BusCommunication(&sensorHandle, Sdi12Resp.recBuf,
+                                    &Sdi12Resp.recSize, STD_WAIT_SENRESP_MS,
+                                    SDI12_QUERY_ADDR);
+  sensorHandle.sdi12IdNewOrQuery = Sdi12Resp.recBuf[0];
 
-  //sdi12QuerySensorAddress(&addy);
-  sdi12QueryAddress();
-  addy = sensorHandle.sdi12IdNewOrQuery;
-  //testAddress(&addy);
-  sprintf(log, "Current sensor address: %c", addy);
+  sprintf(log, "Current sensor address: %c", sensorHandle.sdi12IdNewOrQuery);
   printLog(log);
-  //enableSdi();
-  //addy = sensorHandle.sdi12IdNewOrQuery;
-
-  if(strncmp(&addy, "0", 1) == 0)
-  {
-    setDigit(0);
-    sdi12AddrRequested = '1';
-  }
-  else if(strncmp(&addy, "1", 1) == 0)
-  {
-    setDigit(1);
-    sdi12AddrRequested = '2';
-  }
-  else if(strncmp(&addy, "2", 1) == 0)
-  {
-    setDigit(2);
-    sdi12AddrRequested = '3';
-  }
-  else if(strncmp(&addy, "3", 1) == 0)
-  {
-    setDigit(3);
-    sdi12AddrRequested = '0';
-  }
+  setDigit(sensorHandle.sdi12IdNewOrQuery);
 
   HAL_Delay(200);
-
-
-  char addressArr[]=  {'0', '1', '2', '3'};
-
-
 
   /* USER CODE END 2 */
 
@@ -190,16 +167,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
-    //readAddress();
-  
-    //  for(int i = 0; i < 10; i++)
-    //  {
-    //    sprintf(log, "Setting LED to %d", i);
-    //    printLog(log);
-    //    setDigit(i);
-    //    HAL_Delay(3000);
-    //  }
     if(buttonInterruptFlag == -1)
     {
       HAL_Delay(50);
@@ -207,39 +174,16 @@ int main(void)
     else
     {
       printLog("SSMITH IN TEST CHANGE");
-      // for(int i = 0; i < 4; i++)
-      // {
-      //   if(i == buttonInterruptFlag)
-      // }
-      //testChange(addy, addressArr[buttonInterruptFlag], &addy);
-      sdi12ChangeAddress(addy, addressArr[buttonInterruptFlag]);
-      addy = sensorHandle.sdi12IdNewOrQuery;
+      //sdi12ChangeAddress(sensorHandle.sdi12IdNewOrQuery, addressArr[buttonInterruptFlag]);
+      sensorHandle.sdi12Address      = sensorHandle.sdi12IdNewOrQuery;
+      sensorHandle.sdi12IdNewOrQuery = addressArr[buttonInterruptFlag];
 
-      if(strncmp(&addy, "0", 1) == 0)
-      {
-        setDigit(0);
-        sdi12AddrRequested = '1';
-      }
-      else if(strncmp(&addy, "1", 1) == 0)
-      {
-        setDigit(1);
-        sdi12AddrRequested = '2';
-      }
-      else if(strncmp(&addy, "2", 1) == 0)
-      {
-        setDigit(2);
-        sdi12AddrRequested = '3';
-      }
-      else if(strncmp(&addy, "3", 1) == 0)
-      {
-        setDigit(3);
-        sdi12AddrRequested = '0';
-      }
+      retStat = sdi12_BusCommunication(&sensorHandle, Sdi12Resp.recBuf,
+                                     &Sdi12Resp.recSize, SDI_STANDARD_WAIT_MS,
+                                     SDI12_CHANGE_ADDR);
+      setDigit(sensorHandle.sdi12IdNewOrQuery);
       buttonInterruptFlag = -1;
     }
-
-
-    //enableSdi();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

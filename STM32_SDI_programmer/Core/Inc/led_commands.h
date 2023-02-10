@@ -6,7 +6,7 @@ typedef struct Led
     uint16_t pin;
 } Led;
 
-void setDigit(int digit);
+void setDigit(char digit);
 
 void writeDigitPin(int digit);
 

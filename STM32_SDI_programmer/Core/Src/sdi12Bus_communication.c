@@ -10,6 +10,7 @@
 #define SDI12_BREAK_MS         (35)                 /**< @brief SDI12 space - break */
 #define SDI12_MARKING_MS       (25)                 /**< @brief SDI12 mark */
 #define SDI12_TX_TIMEOUT_MS    (40)                 /**< @brief SDI12 transmission timeout */
+#define SDI12_STD_RESP_WAIT    (150)
 
 #define SDI_GPIO_MODE          0                    /**< @brief GPIO mode for sdi_tx line */
 #define SDI_UART_MODE          1                    /**< @brief UART mode for sdi_tx line */
@@ -20,7 +21,6 @@
 #define TX_BUFFER_SIZE         16                   /**< @brief Transmission buffer size in bytes */
 
 static uint8_t          flagEnterInSDI12RxMode = 0; /**< @brief Flag to check if driver is in reception mode or not */
-//static TickType_t       txEndRxStartTime;           /**< @brief To hold time between end of Tx and expected start of Rx */
 static char             tx_buf[TX_BUFFER_SIZE];     /**< @brief transmission buffer */
 static char             rx_buf[MAX_RESPONSE_SIZE];  /**< @brief Reception buffer */
 static volatile uint8_t rxCnt;                      /**< @brief received data counts */
@@ -31,20 +31,8 @@ Sdi12Transmit sdi12Tx;
 static int timewake = 0;
 static int timesend = 0;
 
-static const char strAckActive[]           = "%c!";           /**< @brief Acknowledge Active command */
-static const char strQueryAddr[]           = "?!";            /**< @brief Query address command */
-static const char strSendIdentity[]        = "%cI!";          /**< @brief Send Identification */
-static const char strStartMeas[]           = "%cM!";          /**< @brief Start measurements command */
-static const char strStartMeasCrc[]        = "%cMC!";         /**< @brief Start measurements with CRC command */
-static const char strStartAddMeas[]        = "%cM%d!";        /**< @brief Start additional measurements command */
-static const char strStartAddMeasCrc[]     = "%cMC%d!";       /**< @brief Start additional measurements with CRC command */
-static const char strStartConcMeas[]       = "%cC!";          /**< @brief Start concurrent measurements command */
-static const char strStartConcMeasCrc[]    = "%cCC!";         /**< @brief Start concurrent measurements with CRC command */
-static const char strStartAddConcMeas[]    = "%cC%d!";        /**< @brief Start additional concurrent measurements command */
-static const char strStartAddConcMeasCrc[] = "%cCC%d!";       /**< @brief Start additional concurrent measurement with CRC command */
-static const char strGetData[]             = "%cD0!";         /**< @brief Get / read measured data command */
-static const char strGetAddData[]          = "%cD1!";         /**< @brief Get / read additional measured data command */
-static const char strChangeAddr[]          = "%cA%c!";        /**< @brief Change address command */
+static const char strQueryAddr[]  = "?!";                     /**< @brief Query address command */
+static const char strChangeAddr[] = "%cA%c!";                 /**< @brief Change address command */
 
 /**
  * @brief: Function to check parity of data
@@ -99,18 +87,6 @@ static SDI12RetCode sdi12_readResponse(uint8_t *rxSize, char *sdiRxData,
  */
 static SDI12RetCode sdi12_createCmdBuf(Sdi12Handle *hSdi12,
                                        SDI12Cmd commandNum);
-
-/**
- * @brief Function to copy proper measurement related data to create measurement command
- *
- * @param[out] commandBuf fills up with command copy
- * @param[in] index to decide if this is additional measurement or normal
- * @param[in] flagStat Decides mode
- *
- * @return SDI12RetCode type status
- */
-static SDI12RetCode createMesurementBuffer(char *commandBuf, uint8_t index,
-                                           uint8_t flagStat);
 
 /**
  * @brief This function issues Break - 'spacing' & 'Mark' signals necessary to wakeup sensors on SDI line
@@ -169,48 +145,9 @@ static SDI12RetCode sdi12_createCmdBuf(Sdi12Handle *hSdi12, SDI12Cmd commandNum)
     memset(tx_buf, '\0', strlen(tx_buf));
     switch (commandNum)
     {
-    case SDI12_ACK_ACTIVE:
-        memcpy(&buf[0], strAckActive, sizeof(strAckActive));
-        sdi12Tx.size = sprintf(tx_buf, &buf[0], hSdi12->sdi12IdNewOrQuery);
-        break;
-
-    case SDI12_SEND_IDENTITY:
-        memcpy(&buf[0], strSendIdentity, sizeof(strSendIdentity));
-        sdi12Tx.size = sprintf(tx_buf, &buf[0], hSdi12->sdi12Address);
-        break;
-
     case SDI12_QUERY_ADDR:
         memcpy(&buf[0], strQueryAddr, sizeof(strQueryAddr));
         sdi12Tx.size = sprintf(tx_buf, &buf[0]);
-        break;
-
-    // case SDI12_START_MEAS:
-    //     if (createMesurementBuffer(buf, hSdi12->measurementIndex,
-    //                                hSdi12->bitfieldModeFlags) !=
-    //         SDI12RetCode_OK)
-    //     {
-    //         return SDI12RetCode_ERROR;
-    //     }
-    //     if (hSdi12->measurementIndex > 0)
-    //     {
-    //         sdi12Tx.size = sprintf(tx_buf, &buf[0], hSdi12->sdi12Address,
-    //                                hSdi12->measurementIndex);
-    //     }
-    //     else
-    //     {
-    //         sdi12Tx.size = sprintf(tx_buf, &buf[0], hSdi12->sdi12Address);
-    //     }
-    //     break;
-
-    // case SDI12_GET_DATA:
-    //     memcpy(&buf[0], strGetData, sizeof(strGetData));
-    //     sdi12Tx.size = sprintf(tx_buf, &buf[0], hSdi12->sdi12Address,
-    //                            hSdi12->measurementIndex);
-    //     break;
-
-    case SDI12_GET_ADD_DATA:
-        memcpy(&buf[0], strGetAddData, sizeof(strGetAddData));
-        sdi12Tx.size = sprintf(tx_buf, &buf[0], hSdi12->sdi12Address);
         break;
 
     case SDI12_CHANGE_ADDR:
@@ -282,7 +219,7 @@ static SDI12RetCode sdi12_sendCmd(Sdi12Handle *hSdi12)
         //Reception mode
         sdi12_WritePin(&hSdi12->Sdi12PinCfg.sdiTxEnb, RECEPTION_MODE);
         //Get start time for wait
-       // txEndRxStartTime       = xTaskGetTickCount();
+        // txEndRxStartTime       = xTaskGetTickCount();
         flagEnterInSDI12RxMode = 1;
 
         return (SDI12RetCode_OK);
@@ -294,8 +231,8 @@ static SDI12RetCode sdi12_readResponse(uint8_t *rxSize, char *sdiRxData,
 {
     NULL_PTR_CHECK(sdiRxData, SDI12RetCode_ERROR);
 
-   // vTaskDelayUntil(&txEndRxStartTime, pdMS_TO_TICKS(timeout));
-   HAL_Delay(150);
+    // vTaskDelayUntil(&txEndRxStartTime, pdMS_TO_TICKS(timeout));
+    HAL_Delay(150);
 
     //clean previous responses, if any
     memset(sdiRxData, '\0', strlen(sdiRxData));
@@ -319,7 +256,7 @@ static SDI12RetCode sdi12_readResponse(uint8_t *rxSize, char *sdiRxData,
         {
             sdiRxData[symbol] = rx_buf[symbol];
         }
-       // SemiosLogInfo("SSMITH reading: %c", rx_buf[symbol]);
+        // SemiosLogInfo("SSMITH reading: %c", rx_buf[symbol]);
     }
 
     return SDI12RetCode_OK;
@@ -447,64 +384,4 @@ static uint8_t checkParity(char byte)
 void sdi12_WritePin(const Sdi12PortPinMap *pin, const GPIO_PinState state)
 {
     HAL_GPIO_WritePin(pin->pGpioPort, pin->gpioPin, state);
-}
-
-static SDI12RetCode createMesurementBuffer(char *commandBuf, uint8_t index,
-                                           uint8_t flagStat)
-{
-    NULL_PTR_CHECK(commandBuf, SDI12RetCode_INVALID);
-
-    if (flagStat > (SDI12_FLAGS_CRC + SDI12_FLAGS_CONCURRENT))
-    {
-        return SDI12RetCode_ERROR;     //error
-    }
-    // copy appropriate command to send to Start measurements
-    if (flagStat == ((!SDI12_FLAGS_CRC) + (!SDI12_FLAGS_CONCURRENT)))      // normal M command w/o CRC
-    {
-        if (index > 0)
-        {
-            memcpy(commandBuf, strStartAddMeas, sizeof(strStartAddMeas));     //aMx!
-        }
-        else
-        {
-            memcpy(commandBuf, strStartMeas, sizeof(strStartMeas));     //aM!
-        }
-    }
-    else if (flagStat == ((!SDI12_FLAGS_CRC) + SDI12_FLAGS_CONCURRENT))      // concurrent measurement command w/o CRC
-    {
-        if (index > 0)
-        {
-            memcpy(commandBuf, strStartAddConcMeas,
-                   sizeof(strStartAddConcMeas));                                 //aCx!
-        }
-        else
-        {
-            memcpy(commandBuf, strStartConcMeas, sizeof(strStartConcMeas));     //aC!
-        }
-    }
-    else if (flagStat == (SDI12_FLAGS_CRC + (!SDI12_FLAGS_CONCURRENT)))      // CRC but no concurrent
-    {
-        if (index > 0)
-        {
-            memcpy(commandBuf, strStartAddMeasCrc, sizeof(strStartAddMeasCrc));     //aMCx!
-        }
-        else
-        {
-            memcpy(commandBuf, strStartMeasCrc, sizeof(strStartMeasCrc));     //aMC!
-        }
-    }
-    else       //CRC with concurrent mode
-    {
-        if (index > 0)
-        {
-            memcpy(commandBuf, strStartAddConcMeasCrc,
-                   sizeof(strStartAddConcMeasCrc));                                     //aCCx!
-        }
-        else
-        {
-            memcpy(commandBuf, strStartConcMeasCrc,
-                   sizeof(strStartConcMeasCrc));                                 //aCC!
-        }
-    }
-    return SDI12RetCode_OK;
 }

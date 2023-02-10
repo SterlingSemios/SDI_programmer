@@ -23,8 +23,8 @@ int* buttonFlag;
 
 SDI12RetCode sdi12Init(Sdi12Handle *sdi12SensorHandle, Sdi12Receive *sdi12recBuf, int *flag)
 {
-    //NULL_PTR_CHECK(sdi12SensorHandle, SDI12RetCode_INVALID);
-    //NULL_PTR_CHECK(sdi12recBuf, SDI12RetCode_INVALID);
+    NULL_PTR_CHECK(sdi12SensorHandle, SDI12RetCode_INVALID);
+    NULL_PTR_CHECK(sdi12recBuf, SDI12RetCode_INVALID);
 
     sensorHandle = sdi12SensorHandle;
     Sdi12Response = sdi12recBuf;
@@ -32,18 +32,6 @@ SDI12RetCode sdi12Init(Sdi12Handle *sdi12SensorHandle, Sdi12Receive *sdi12recBuf
 
     return SDI12RetCode_OK;
 }
-
-// void testAddress(char * addy)
-// {
-//     sdi12QueryAddress();
-//     *addy = sensorHandle.sdi12IdNewOrQuery;
-// }
-
-// void testChange(char existing, char desired, char *newaddy)
-// {
-//     sdi12ChangeAddress(existing, desired);
-//     *newaddy = sensorHandle.sdi12IdNewOrQuery;
-// }
 
 SDI12RetCode sdi12QueryAddress()
 {

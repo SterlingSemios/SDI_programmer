@@ -181,6 +181,7 @@ void EXTI4_15_IRQHandler(void)
   */
 void USART1_IRQHandler(void)
 {
+  printLog("SSMITH in rx interrupt");
   /* USER CODE BEGIN USART1_IRQn 0 */
   if (__HAL_UART_GET_FLAG(&huart1, UART_FLAG_RXNE))
   {

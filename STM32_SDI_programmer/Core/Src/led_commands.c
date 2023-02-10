@@ -1,6 +1,8 @@
 #include "led_commands.h"
 #include "sdi_logging.h"
+#include "string.h"
 
+#define MAX_SENSOR_ADDRESS 3
 
 Led leds[7] =
 {
@@ -25,30 +27,28 @@ uint8_t HexDisplayCode[17] = {
   0b0111000,  // 7
   0b1111111,  // 8
   0b1111110,  // 9
-  0b1111101,  // A
-  0b1100111,  // B
-  0b1100011,  // C
-  0b1110111,  // D
-  0b1100111,  // E
-  0b1100110,  // F
-  0b0000000   // .
 };
 
-void setDigit(int digit)
+void setDigit(char digit)
 {
-    char log[250];
     clearLeds();
+    char charArr[]=  {'0', '1', '2', '3'};
 
-    for (int i=0; i < 7; i++)
+    for(int intDigit = 0; intDigit <= MAX_SENSOR_ADDRESS; intDigit++)
     {
-        if (HexDisplayCode[digit] & (1 << i))
+        if(strncmp(&digit, &charArr[intDigit], 1) == 0)
         {
-            //sprintf(log, "Setting digit inc %d", i);
-            //printLog(log);
-            writeDigitPin(i);
+            for (int i=0; i < 7; i++)
+            {
+                if (HexDisplayCode[intDigit] & (1 << i))
+                {
+                    writeDigitPin(i);
+                }
+            }
+
+            break;
         }
     }
-
 }
 
 void writeDigitPin(int digit)

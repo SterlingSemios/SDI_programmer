@@ -154,10 +154,4 @@ SDI12RetCode sdi12QueryAddress();
 
 void triggerAddressChange(addrChangeType changeAddress);
 
-void testAddress(char * addy);
-
-void testChange(char existing, char desired, char *newaddy);
-
-/* @[declare_sdi12_getMeasuredData] */
-
 #endif /* SDI12_DRIVER_H */
