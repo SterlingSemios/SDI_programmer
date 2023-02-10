@@ -25,6 +25,7 @@
 //#include "sdi_commands.h"
 #include "sdi_logging.h"
 #include "sdi12Bus_communication.h"
+#include "sdi12_driver.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -150,6 +151,7 @@ void EXTI0_1_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI0_1_IRQn 0 */
   printLog("SSMITH DOWN button interrupt");
+  triggerAddressChange(DOWN);
 
   /* USER CODE END EXTI0_1_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(ButtonDown_Pin);
@@ -165,6 +167,7 @@ void EXTI4_15_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI4_15_IRQn 0 */
   printLog("SSMITH UP button interrupt");
+  triggerAddressChange(UP);
 
   /* USER CODE END EXTI4_15_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(ButtonUp_Pin);
@@ -179,12 +182,10 @@ void EXTI4_15_IRQHandler(void)
 void USART1_IRQHandler(void)
 {
   /* USER CODE BEGIN USART1_IRQn 0 */
-  //receiveRx((char)READ_REG(huart1.Instance->RDR));
   if (__HAL_UART_GET_FLAG(&huart1, UART_FLAG_RXNE))
   {
     __HAL_UART_SEND_REQ(&huart1, UART_RXDATA_FLUSH_REQUEST);
     __HAL_UART_CLEAR_IT(&huart1, UART_CLEAR_OREF);
-    //receiveRx((char)READ_REG(huart1.Instance->RDR));
     sdi12_receiveRxByteFromIsr((char)READ_REG(huart1.Instance->RDR));
   }
 

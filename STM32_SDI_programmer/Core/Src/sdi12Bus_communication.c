@@ -322,12 +322,6 @@ static SDI12RetCode sdi12_readResponse(uint8_t *rxSize, char *sdiRxData,
        // SemiosLogInfo("SSMITH reading: %c", rx_buf[symbol]);
     }
 
-    int enbPinState = HAL_GPIO_ReadPin(SDI_TX_ENB_GPIO_Port, SDI_TX_ENB_Pin);
-    int txPinState  = HAL_GPIO_ReadPin(SDI_TX_GPIO_Port, SDI_TX_Pin);
-    int rxPinState  = HAL_GPIO_ReadPin(SDI_RX_GPIO_Port, SDI_RX_Pin);
-
-   // SemiosLogInfo("SSMITH RX state: Tx Enb: %d, Tx: %d, Rx: %d", enbPinState, txPinState, rxPinState);
-
     return SDI12RetCode_OK;
 }
 

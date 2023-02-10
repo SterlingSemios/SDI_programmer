@@ -101,8 +101,9 @@ int main(void)
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
 
-  //Init SDI handles
+  int buttonInterruptFlag = -1;
 
+  //Init SDI handles
   Sdi12PortPinMap sdiTxEnb =
   {
     .pGpioPort = SDI_TX_ENB_GPIO_Port,
@@ -133,7 +134,7 @@ int main(void)
         .recSize = rxSize
     };
 
-  sdi12Init(&sensorHandle, &Sdi12Resp);
+  sdi12Init(&sensorHandle, &Sdi12Resp, &buttonInterruptFlag);
 
 
 
@@ -148,10 +149,12 @@ int main(void)
 
   //sdi12QuerySensorAddress(&addy);
   sdi12QueryAddress();
-  sprintf(log, "Current sensor address: %c", sensorHandle.sdi12IdNewOrQuery);
+  addy = sensorHandle.sdi12IdNewOrQuery;
+  //testAddress(&addy);
+  sprintf(log, "Current sensor address: %c", addy);
   printLog(log);
   //enableSdi();
-  addy = sensorHandle.sdi12IdNewOrQuery;
+  //addy = sensorHandle.sdi12IdNewOrQuery;
 
   if(strncmp(&addy, "0", 1) == 0)
   {
@@ -174,41 +177,10 @@ int main(void)
     sdi12AddrRequested = '0';
   }
 
-  HAL_Delay(2000);
-
-  //sensorHandle.sdi12Address = addy;
- //sensorHandle.sdi12IdNewOrQuery = sdi12AddrRequested
+  HAL_Delay(200);
 
 
-  sdi12ChangeAddress(addy, sdi12AddrRequested);
-
-  printLog("Verify change:");
-  printChar(sensorHandle.sdi12IdNewOrQuery);
-  addy = sensorHandle.sdi12IdNewOrQuery;
-
-  if(strncmp(&addy, "0", 1) == 0)
-  {
-    setDigit(0);
-    sdi12AddrRequested = '1';
-  }
-  else if(strncmp(&addy, "1", 1) == 0)
-  {
-    setDigit(1);
-    sdi12AddrRequested = '2';
-  }
-  else if(strncmp(&addy, "2", 1) == 0)
-  {
-    setDigit(2);
-    sdi12AddrRequested = '3';
-  }
-  else if(strncmp(&addy, "3", 1) == 0)
-  {
-    setDigit(3);
-    sdi12AddrRequested = '0';
-  }
-
-
-
+  char addressArr[]=  {'0', '1', '2', '3'};
 
 
 
@@ -228,18 +200,44 @@ int main(void)
     //    setDigit(i);
     //    HAL_Delay(3000);
     //  }
-    HAL_Delay(5000);
+    if(buttonInterruptFlag == -1)
+    {
+      HAL_Delay(50);
+    }
+    else
+    {
+      printLog("SSMITH IN TEST CHANGE");
+      // for(int i = 0; i < 4; i++)
+      // {
+      //   if(i == buttonInterruptFlag)
+      // }
+      //testChange(addy, addressArr[buttonInterruptFlag], &addy);
+      sdi12ChangeAddress(addy, addressArr[buttonInterruptFlag]);
+      addy = sensorHandle.sdi12IdNewOrQuery;
 
+      if(strncmp(&addy, "0", 1) == 0)
+      {
+        setDigit(0);
+        sdi12AddrRequested = '1';
+      }
+      else if(strncmp(&addy, "1", 1) == 0)
+      {
+        setDigit(1);
+        sdi12AddrRequested = '2';
+      }
+      else if(strncmp(&addy, "2", 1) == 0)
+      {
+        setDigit(2);
+        sdi12AddrRequested = '3';
+      }
+      else if(strncmp(&addy, "3", 1) == 0)
+      {
+        setDigit(3);
+        sdi12AddrRequested = '0';
+      }
+      buttonInterruptFlag = -1;
+    }
 
-    // printLog("----------");
-    // printLog("----------");
-    // printLog("----------");
-
-    // int enbPinState = HAL_GPIO_ReadPin(SDI_TX_ENB_GPIO_Port, SDI_TX_ENB_Pin);
-    // int txPinState = HAL_GPIO_ReadPin(SDI_TX_GPIO_Port, SDI_TX_Pin);
-    // int rxPinState = HAL_GPIO_ReadPin(SDI_RX_GPIO_Port, SDI_RX_Pin);
-    //sprintf(log, "loop state: Tx Enb: %d, Tx: %d, Rx: %d", enbPinState, txPinState, rxPinState);
-    //printLog(log);
 
     //enableSdi();
     /* USER CODE END WHILE */

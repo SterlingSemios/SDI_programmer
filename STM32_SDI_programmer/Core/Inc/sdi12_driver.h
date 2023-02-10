@@ -38,6 +38,12 @@
 #define NULL_PTR_CHECK(ptr, errNumber)    if (ptr == NULL) return errNumber; /**< @brief Macro for NULL pointer check */
 
 
+typedef enum
+{
+    DOWN = 0,
+    UP,
+}addrChangeType;
+
 /**
  * @brief Enum type for possible SDI12 return code / status code
  */
@@ -107,7 +113,7 @@ typedef struct __Sdi12Receive_t
  * @return SDI12RetCode_OK if Success
  *         SDI12RetCode_ERROR if fail
  */
-SDI12RetCode sdi12Init(Sdi12Handle *sdi12SensorHandle, Sdi12Receive *sdi12recBuf);
+SDI12RetCode sdi12Init(Sdi12Handle *sdi12SensorHandle, Sdi12Receive *sdi12recBuf, int *flag);
 /**
  * @brief Function queries address of sensor present on SDI12 bus
  *
@@ -145,6 +151,12 @@ SDI12RetCode sdi12ChangeAddress(char existingAddr, char desiredAddr);
  *         SDI12RetCode_ERROR if failed
  */
 SDI12RetCode sdi12QueryAddress();
+
+void triggerAddressChange(addrChangeType changeAddress);
+
+void testAddress(char * addy);
+
+void testChange(char existing, char desired, char *newaddy);
 
 /* @[declare_sdi12_getMeasuredData] */
 

@@ -1,6 +1,7 @@
 #include "sdi12_driver.h"
 #include "sdi12Bus_communication.h"
 #include "sdi_logging.h"
+#include "led_commands.h"
 
 //Delay defines
 #define STD_WAIT_SENRESP_MS            (150)  /**< @brief SDI12 wait time for response as per standard*/
@@ -18,31 +19,31 @@ char address_buf;
 Sdi12Receive *Sdi12Response;
 Sdi12Handle *sensorHandle = {0};          /*SDI12 sensor handle*/
 
+int* buttonFlag;
 
-/**
- * @brief Function queries address of sensor present on SDI12 bus
- *        NOTE: This function must be used when only one sensor is present on bus
- *              or only single sensor is powered on and able to communicate on bus.
- *
- * NOTE: handleSdi12.sdi12IdNewOrQuery gets updated with address received from query command
- *
- * @return SDI12RetCode_OK if queried address is valid
- *         SDI12RetCode_ADDRESS_INVALID if wrong address is read
- *         SDI12RetCode_ERROR if failed
- */
-//static SDI12RetCode sdi12QueryAddress();
-
-
-SDI12RetCode sdi12Init(Sdi12Handle *sdi12SensorHandle, Sdi12Receive *sdi12recBuf)
+SDI12RetCode sdi12Init(Sdi12Handle *sdi12SensorHandle, Sdi12Receive *sdi12recBuf, int *flag)
 {
-    NULL_PTR_CHECK(sdi12SensorHandle, SDI12RetCode_INVALID);
-    NULL_PTR_CHECK(sdi12recBuf, SDI12RetCode_INVALID);
+    //NULL_PTR_CHECK(sdi12SensorHandle, SDI12RetCode_INVALID);
+    //NULL_PTR_CHECK(sdi12recBuf, SDI12RetCode_INVALID);
 
     sensorHandle = sdi12SensorHandle;
     Sdi12Response = sdi12recBuf;
+    buttonFlag = flag;
 
     return SDI12RetCode_OK;
 }
+
+// void testAddress(char * addy)
+// {
+//     sdi12QueryAddress();
+//     *addy = sensorHandle.sdi12IdNewOrQuery;
+// }
+
+// void testChange(char existing, char desired, char *newaddy)
+// {
+//     sdi12ChangeAddress(existing, desired);
+//     *newaddy = sensorHandle.sdi12IdNewOrQuery;
+// }
 
 SDI12RetCode sdi12QueryAddress()
 {
@@ -62,15 +63,12 @@ SDI12RetCode sdi12QueryAddress()
             sensorHandle->sdi12IdNewOrQuery = Sdi12Response->recBuf[ADDRESS_CHAR_IN_RESP];
             address_buf = Sdi12Response->recBuf[ADDRESS_CHAR_IN_RESP];
 
-            char ch = Sdi12Response->recBuf[ADDRESS_CHAR_IN_RESP] - '0'; //Limitation: for now applicable only to range 0-9
         }
         else
         {
             retStat = SDI12RetCode_ADDRESS_INVALID;
         }
     }
-
-    //xSemaphoreGive(sdi12CommMutex);
 
     return retStat;
 }
@@ -90,8 +88,6 @@ SDI12RetCode sdi12ChangeAddress(char existingAddr, char desiredAddr)
     {
         return (SDI12RetCode_ADDRESS_INVALID);
     }
-
-    char ch = desiredAddr - '0';
 
     //fill up required fields for communication
     sensorHandle->sdi12IdNewOrQuery = desiredAddr;
@@ -120,4 +116,42 @@ SDI12RetCode sdi12ChangeAddress(char existingAddr, char desiredAddr)
     }
 
     return retStat;
+}
+
+void triggerAddressChange(addrChangeType changeAddress)
+{
+    int maxAddress = 3;
+    char addressArr[]=  {'0', '1', '2', '3'};
+    int newAddress = 0;
+
+    for(int address = 0; address <= maxAddress; address++)
+    {
+        if(strncmp(&sensorHandle->sdi12IdNewOrQuery, &addressArr[address], 1) == 0)
+        {
+            if(changeAddress == UP)
+            {
+                if(address != 3)
+                {
+                    newAddress = address + 1;
+                }
+                else
+                {
+                    newAddress = 0;
+                }
+            }
+            else if(changeAddress == DOWN)
+            {
+                if(address != 0)
+                {
+                    newAddress = address - 1;
+                }
+                else
+                {
+                    newAddress = 3;
+                }
+            }
+        }
+    }
+
+    *buttonFlag = newAddress;
 }
