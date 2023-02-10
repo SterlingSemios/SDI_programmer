@@ -150,7 +150,7 @@ void SysTick_Handler(void)
 void EXTI0_1_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI0_1_IRQn 0 */
-  printLog("SSMITH DOWN button interrupt");
+  printLog("Decrementing sensor address");
   triggerAddressChange(DOWN);
 
   /* USER CODE END EXTI0_1_IRQn 0 */
@@ -166,7 +166,7 @@ void EXTI0_1_IRQHandler(void)
 void EXTI4_15_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI4_15_IRQn 0 */
-  printLog("SSMITH UP button interrupt");
+  printLog("Incrementing sensor address");
   triggerAddressChange(UP);
 
   /* USER CODE END EXTI4_15_IRQn 0 */
@@ -181,8 +181,8 @@ void EXTI4_15_IRQHandler(void)
   */
 void USART1_IRQHandler(void)
 {
-  printLog("SSMITH in rx interrupt");
   /* USER CODE BEGIN USART1_IRQn 0 */
+  printDebug("RX interrupt triggered");
   if (__HAL_UART_GET_FLAG(&huart1, UART_FLAG_RXNE))
   {
     __HAL_UART_SEND_REQ(&huart1, UART_RXDATA_FLUSH_REQUEST);

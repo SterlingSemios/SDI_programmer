@@ -1,6 +1,7 @@
 /**
  * @file sdi12Bus_communication.h
  * @brief APIs and helper functions for SDI12 bus communication (Rx-Tx and related)
+ *        (This is a stripped down version of the NodeY v3 SDI12 Driver)
  *        Refer: "https://semios.atlassian.net/wiki/x/IQCPU"
  *
  * @author: Prajakta Ranade
@@ -28,12 +29,7 @@ Sdi12Transmit;
  */
 typedef enum
 {
-    SDI12_ACK_ACTIVE = 1, /**< @brief Acknowledge Active command - a! */
     SDI12_QUERY_ADDR,     /**< @brief Address Query command - ?! */
-    SDI12_SEND_IDENTITY,  /**< @brief Send identification command - aI!*/
-    SDI12_START_MEAS,     /**< @brief Start measurement command */
-    SDI12_GET_DATA,       /**< @brief Get measurement data command */
-    SDI12_GET_ADD_DATA,  /**< @brief Get additional measurement data command */
     SDI12_CHANGE_ADDR,    /**< @brief Change address command - aAb! */
 }
 SDI12Cmd;

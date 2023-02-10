@@ -1,7 +1,7 @@
 #include "sdi12_driver.h"
 #include "sdi12Bus_communication.h"
 #include "sdi_logging.h"
-#include "led_commands.h"
+#include "led_driver.h"
 
 //Delay defines
 #define STD_WAIT_SENRESP_MS            (150)  /**< @brief SDI12 wait time for response as per standard*/

@@ -1,10 +1,25 @@
-#include "led_commands.h"
-#include "sdi_logging.h"
+/**
+ * Copyright (C) 2021 SemiosBIO Technologies Inc.
+ * All Rights Reserved.
+ *
+ * Unauthorized copying of these files via any medium is strictly prohibited.
+ * Proprietary & Confidential
+ */
+
+/*
+ * @file led_driver.c
+ * @brief Functions to control the LED display
+ *
+ * @author: Sterling Smith
+ * @date: 10 Feb 2022
+ */
+
+#include "led_driver.h"
 #include "string.h"
 
 #define MAX_SENSOR_ADDRESS 3
 
-Led leds[7] =
+Led ledConfig[7] =
 {
     {GPIOA, GPIO_PIN_8},
     {GPIOA, GPIO_PIN_9},
@@ -15,8 +30,7 @@ Led leds[7] =
     {GPIOB, GPIO_PIN_15}
 };
 
-uint8_t HexDisplayCode[17] = {
-/*//  abcdefg  .*/
+uint8_t HexDisplayCode[10] = {
   0b1111011,  // 0
   0b0011000,  // 1
   0b0110111,  // 2
@@ -28,6 +42,10 @@ uint8_t HexDisplayCode[17] = {
   0b1111111,  // 8
   0b1111110,  // 9
 };
+
+static void writeDigitPin(int digit);
+
+static void clearLeds();
 
 void setDigit(char digit)
 {
@@ -51,15 +69,15 @@ void setDigit(char digit)
     }
 }
 
-void writeDigitPin(int digit)
+static void writeDigitPin(int digit)
 {
-    HAL_GPIO_WritePin(leds[digit].port, leds[digit].pin, 1);
+    HAL_GPIO_WritePin(ledConfig[digit].port, ledConfig[digit].pin, 1);
 }
 
-void clearLeds()
+static void clearLeds()
 {
     for(int i=0; i < 7; i++)
     {
-        HAL_GPIO_WritePin(leds[i].port, leds[i].pin, 0);
+        HAL_GPIO_WritePin(ledConfig[i].port, ledConfig[i].pin, 0);
     }
 }

@@ -1,6 +1,6 @@
 /**
  * @file sdi12Bus_communication.c
- * @brief SDI12 bus communication driver
+ * @brief SDI12 bus communication driver (This is a stripped down version of the NodeY v3 SDI12 Driver)
  *        Refer: "https://semios.atlassian.net/wiki/spaces/EM/pages/1509097647/SDI12+Driver+Design+v2.0"
  */
 
@@ -27,9 +27,6 @@ static volatile uint8_t rxCnt;                      /**< @brief received data co
 volatile uint8_t        flagRxComplete;             /**< @brief Flag indication for response ready/ RX complete */
 
 Sdi12Transmit sdi12Tx;
-
-static int timewake = 0;
-static int timesend = 0;
 
 static const char strQueryAddr[]  = "?!";                     /**< @brief Query address command */
 static const char strChangeAddr[] = "%cA%c!";                 /**< @brief Change address command */
@@ -163,12 +160,11 @@ static SDI12RetCode sdi12_createCmdBuf(Sdi12Handle *hSdi12, SDI12Cmd commandNum)
     // Start Transmission mode
     sdi12_WritePin(&hSdi12->Sdi12PinCfg.sdiTxEnb, TRANSMISSION_MODE);
     flagEnterInSDI12RxMode = 0;
-    printLog("SSMITH txbuf:");
-    printLog(tx_buf);
+
+    printDebug("txBuf:");
+    printDebug(tx_buf);
 
     sdi12Tx.pTxBuf = &tx_buf[0];
-
-
     ++sdi12Tx.size;
 
     return SDI12RetCode_OK; // all good
@@ -193,12 +189,10 @@ static SDI12RetCode sdi12_sendCmd(Sdi12Handle *hSdi12)
             byte  = *(sdi12Tx.pTxBuf++);
             byte |= (calculateEvenParity(byte) << 7);
 
-            timesend = HAL_GetTick();
-            printLog("SSMITH sending");
-            printLog(&byte);
+            printDebug("Sending byte:");
+            printDebug(&byte);
             txRet = HAL_UART_Transmit((hSdi12->hUART), (uint8_t *)&byte, 1,
                                       SDI12_TX_TIMEOUT_MS);
-            //SemiosLogInfo("SSMITH sending: %c", byte);
             HAL_Delay(1); // to finish having Tx echoed back data on Rx properly
             if (txRet != HAL_OK)
             {
@@ -214,12 +208,8 @@ static SDI12RetCode sdi12_sendCmd(Sdi12Handle *hSdi12)
     }
     else
     {
-        printLog("SSMITH reception mode");
-        //SemiosLogInfo("SSMITH Wake - send time: %d", timesend - timewake);
-        //Reception mode
+        printDebug("Entering RX reception mode");
         sdi12_WritePin(&hSdi12->Sdi12PinCfg.sdiTxEnb, RECEPTION_MODE);
-        //Get start time for wait
-        // txEndRxStartTime       = xTaskGetTickCount();
         flagEnterInSDI12RxMode = 1;
 
         return (SDI12RetCode_OK);
@@ -231,8 +221,8 @@ static SDI12RetCode sdi12_readResponse(uint8_t *rxSize, char *sdiRxData,
 {
     NULL_PTR_CHECK(sdiRxData, SDI12RetCode_ERROR);
 
-    // vTaskDelayUntil(&txEndRxStartTime, pdMS_TO_TICKS(timeout));
-    HAL_Delay(150);
+    //
+    HAL_Delay(timeout);
 
     //clean previous responses, if any
     memset(sdiRxData, '\0', strlen(sdiRxData));
@@ -268,7 +258,6 @@ static SDI12RetCode sdi12_wakeUpSignal(UART_HandleTypeDef *hSdiUart,
     NULL_PTR_CHECK(hSdiUart, SDI12RetCode_INVALID);
     NULL_PTR_CHECK(sdiPinMap, SDI12RetCode_INVALID);
 
-    timewake = HAL_GetTick();
     __HAL_UART_DISABLE(hSdiUart);
     HAL_Delay(1);
     sdi12_WritePin(&sdiPinMap->sdiTxEnb, 0);
