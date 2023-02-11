@@ -38,6 +38,7 @@
 #define STD_WAIT_SENRESP_MS     (150) /**< @brief SDI12 wait time for response as per standard*/
 #define SDI_STANDARD_WAIT_MS    (750) /**< @brief SDI12 standard wait time for Address change and Identification command response as per standard*/
 #define MAX_INIT_TIME           (6)   /**< @brief Max time in ms from uart init to address read command*/
+#define IDLE_TIME_SEC           (10)  /**< @brief Max time in seconds that the programmer will remain idle before suspending*/
 
 /* USER CODE END PD */
 
@@ -53,7 +54,8 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 char         addressArr[]        = {'0', '1', '2', '3'};
 int          buttonInterruptFlag = -1;
-Sdi12Handle *interruptSdiHandle;
+int          addressReadFlag     = UNREAD;
+Sdi12Handle *interruptSdiHandle  = {0};
 
 /* USER CODE END PV */
 
@@ -79,13 +81,13 @@ static void MX_USART1_UART_Init(void);
 int main(void)
 {
     /* USER CODE BEGIN 1 */
-    char         log[250]         = {0};
-    char         address_buf      = {0};
-    char         rxbuf[250]       = {0};
-    int          rxSize           = 250;
-    SDI12RetCode retStat          = 0;
-    int          startTime        = HAL_GetTick();
-    int          initCompleteTime = 0;
+    char         log[250]        = {0};
+    char         address_buf     = {0};
+    char         rxbuf[250]      = {0};
+    int          rxSize          = 250;
+    SDI12RetCode retStat         = 0;
+    int          idleCycles      = 0;
+    char         addressNotFound = '8';
 
     /* USER CODE END 1 */
 
@@ -147,35 +149,6 @@ int main(void)
     printLog("          ---");
     printLog("SDI programmer initialized");
     printLog("          ---");
-    initCompleteTime = HAL_GetTick();
-
-    // Request SDI-12 sensor address
-    retStat = sdi12_BusCommunication(&sensorHandle, Sdi12Resp.recBuf,
-                                     &Sdi12Resp.recSize, STD_WAIT_SENRESP_MS,
-                                     SDI12_QUERY_ADDR);
-    sensorHandle.sdi12IdNewOrQuery = Sdi12Resp.recBuf[0];
-
-    // SDI responses are very sensitive to power on -> first query time
-    if (initCompleteTime - startTime > MAX_INIT_TIME)
-    {
-        sprintf(log, "Warning, init time of %d is too long, SDI may not respond",
-                initCompleteTime - startTime);
-        printLog("log");
-    }
-
-    if (retStat != SDI12RetCode_OK)
-    {
-        printLog("Error: Failed to read sensor address");
-    }
-    else
-    {
-        sprintf(log, "Current sensor address: %c", sensorHandle.sdi12IdNewOrQuery);
-        printLog(log);
-        setDigit(sensorHandle.sdi12IdNewOrQuery);
-    }
-
-    // Let sensor settle before first possible address change
-    HAL_Delay(STD_WAIT_SENRESP_MS);
 
     /* USER CODE END 2 */
 
@@ -183,16 +156,51 @@ int main(void)
     /* USER CODE BEGIN WHILE */
     while (1)
     {
+        if (idleCycles == IDLE_TIME_SEC * 20)
+        {
+            //Suspend programmer if left idle
+            printLog("Entering STOP mode");
+            HAL_SuspendTick();
+            HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI);
+            SystemClock_Config();
+            HAL_ResumeTick();
+            idleCycles = 0;
+        }
+
+        if (addressReadFlag == UNREAD)
+        {
+            // Request SDI-12 sensor address
+            retStat = sdi12_BusCommunication(&sensorHandle, Sdi12Resp.recBuf,
+                                             &Sdi12Resp.recSize, STD_WAIT_SENRESP_MS,
+                                             SDI12_QUERY_ADDR);
+            sensorHandle.sdi12IdNewOrQuery = Sdi12Resp.recBuf[0];
+
+            if (retStat != SDI12RetCode_OK)
+            {
+                printLog("Error: Failed to read sensor address");
+                setDigit(addressNotFound);
+                HAL_Delay(STD_WAIT_SENRESP_MS); //Give SDI a break before querying again
+                idleCycles += 3;
+            }
+            else
+            {
+                sprintf(log, "Current sensor address: %c", sensorHandle.sdi12IdNewOrQuery);
+                printLog(log);
+                setDigit(sensorHandle.sdi12IdNewOrQuery);
+                addressReadFlag = READ;
+            }
+        }
+
         if (buttonInterruptFlag == -1)
         {
             HAL_Delay(50);
+            idleCycles++;
         }
         else
         {
+            // Request SDI-12 sensor address change
             sensorHandle.sdi12Address      = sensorHandle.sdi12IdNewOrQuery;
             sensorHandle.sdi12IdNewOrQuery = addressArr[buttonInterruptFlag];
-
-            // Request SDI-12 sensor address change
             retStat = sdi12_BusCommunication(&sensorHandle, Sdi12Resp.recBuf,
                                              &Sdi12Resp.recSize, SDI_STANDARD_WAIT_MS,
                                              SDI12_CHANGE_ADDR);
@@ -210,6 +218,7 @@ int main(void)
             }
 
             buttonInterruptFlag = -1;
+            idleCycles          = 0;
         }
         /* USER CODE END WHILE */
 
