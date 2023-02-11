@@ -25,7 +25,7 @@
 //#include "sdi_commands.h"
 #include "sdi_logging.h"
 #include "sdi12Bus_communication.h"
-#include "sdi12_driver.h"
+//#include "sdi12_driver.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/

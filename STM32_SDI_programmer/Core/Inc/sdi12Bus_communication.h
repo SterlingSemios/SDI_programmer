@@ -11,8 +11,14 @@
 #ifndef SDI12BUS_COMMUNICATION_H
 #define SDI12BUS_COMMUNICATION_H
 
-#include "sdi12_driver.h"
+//#include "sdi12_driver.h"
 #include "main.h"
+
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+
+#define NULL_PTR_CHECK(ptr, errNumber)    if (ptr == NULL) return errNumber; /**< @brief Macro for NULL pointer check */
 
 /**
  * @brief Structure to hold transmission data/command

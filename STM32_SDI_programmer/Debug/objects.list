@@ -1,7 +1,6 @@
 "./Core/Src/led_driver.o"
 "./Core/Src/main.o"
 "./Core/Src/sdi12Bus_communication.o"
-"./Core/Src/sdi12_driver.o"
 "./Core/Src/sdi_logging.o"
 "./Core/Src/stm32g0xx_hal_msp.o"
 "./Core/Src/stm32g0xx_it.o"

@@ -8,7 +8,6 @@ C_SRCS += \
 ../Core/Src/led_driver.c \
 ../Core/Src/main.c \
 ../Core/Src/sdi12Bus_communication.c \
-../Core/Src/sdi12_driver.c \
 ../Core/Src/sdi_logging.c \
 ../Core/Src/stm32g0xx_hal_msp.c \
 ../Core/Src/stm32g0xx_it.c \
@@ -20,7 +19,6 @@ OBJS += \
 ./Core/Src/led_driver.o \
 ./Core/Src/main.o \
 ./Core/Src/sdi12Bus_communication.o \
-./Core/Src/sdi12_driver.o \
 ./Core/Src/sdi_logging.o \
 ./Core/Src/stm32g0xx_hal_msp.o \
 ./Core/Src/stm32g0xx_it.o \
@@ -32,7 +30,6 @@ C_DEPS += \
 ./Core/Src/led_driver.d \
 ./Core/Src/main.d \
 ./Core/Src/sdi12Bus_communication.d \
-./Core/Src/sdi12_driver.d \
 ./Core/Src/sdi_logging.d \
 ./Core/Src/stm32g0xx_hal_msp.d \
 ./Core/Src/stm32g0xx_it.d \
@@ -48,7 +45,7 @@ Core/Src/%.o Core/Src/%.su: ../Core/Src/%.c Core/Src/subdir.mk
 clean: clean-Core-2f-Src
 
 clean-Core-2f-Src:
-	-$(RM) ./Core/Src/led_driver.d ./Core/Src/led_driver.o ./Core/Src/led_driver.su ./Core/Src/main.d ./Core/Src/main.o ./Core/Src/main.su ./Core/Src/sdi12Bus_communication.d ./Core/Src/sdi12Bus_communication.o ./Core/Src/sdi12Bus_communication.su ./Core/Src/sdi12_driver.d ./Core/Src/sdi12_driver.o ./Core/Src/sdi12_driver.su ./Core/Src/sdi_logging.d ./Core/Src/sdi_logging.o ./Core/Src/sdi_logging.su ./Core/Src/stm32g0xx_hal_msp.d ./Core/Src/stm32g0xx_hal_msp.o ./Core/Src/stm32g0xx_hal_msp.su ./Core/Src/stm32g0xx_it.d ./Core/Src/stm32g0xx_it.o ./Core/Src/stm32g0xx_it.su ./Core/Src/syscalls.d ./Core/Src/syscalls.o ./Core/Src/syscalls.su ./Core/Src/sysmem.d ./Core/Src/sysmem.o ./Core/Src/sysmem.su ./Core/Src/system_stm32g0xx.d ./Core/Src/system_stm32g0xx.o ./Core/Src/system_stm32g0xx.su
+	-$(RM) ./Core/Src/led_driver.d ./Core/Src/led_driver.o ./Core/Src/led_driver.su ./Core/Src/main.d ./Core/Src/main.o ./Core/Src/main.su ./Core/Src/sdi12Bus_communication.d ./Core/Src/sdi12Bus_communication.o ./Core/Src/sdi12Bus_communication.su ./Core/Src/sdi_logging.d ./Core/Src/sdi_logging.o ./Core/Src/sdi_logging.su ./Core/Src/stm32g0xx_hal_msp.d ./Core/Src/stm32g0xx_hal_msp.o ./Core/Src/stm32g0xx_hal_msp.su ./Core/Src/stm32g0xx_it.d ./Core/Src/stm32g0xx_it.o ./Core/Src/stm32g0xx_it.su ./Core/Src/syscalls.d ./Core/Src/syscalls.o ./Core/Src/syscalls.su ./Core/Src/sysmem.d ./Core/Src/sysmem.o ./Core/Src/sysmem.su ./Core/Src/system_stm32g0xx.d ./Core/Src/system_stm32g0xx.o ./Core/Src/system_stm32g0xx.su
 
 .PHONY: clean-Core-2f-Src
 

@@ -51,6 +51,8 @@ UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
+int buttonInterruptFlag = -1;
+Sdi12Handle *interruptSdiHandle;
 
 /* USER CODE END PV */
 
@@ -108,9 +110,6 @@ int main(void)
     MX_USART2_UART_Init();
     MX_USART1_UART_Init();
     /* USER CODE BEGIN 2 */
-
-    int buttonInterruptFlag = -1;
-
     //Init SDI handles
     Sdi12PortPinMap sdiTxEnb =
     {
@@ -143,7 +142,7 @@ int main(void)
         .recSize = rxSize
     };
 
-    sdi12Init(&sensorHandle, &Sdi12Resp, &buttonInterruptFlag);
+    interruptSdiHandle = &sensorHandle;
 
     printLog("          ---");
     printLog("SDI programmer initialized");
@@ -405,6 +404,43 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void triggerAddressChange(addrChangeType changeAddress)
+{
+    int maxAddress = 3;
+    char addressArr[]=  {'0', '1', '2', '3'};
+    int newAddress = 0;
+
+    for(int address = 0; address <= maxAddress; address++)
+    {
+        if(strncmp(&interruptSdiHandle->sdi12IdNewOrQuery, &addressArr[address], 1) == 0)
+        {
+            if(changeAddress == UP)
+            {
+                if(address != 3)
+                {
+                    newAddress = address + 1;
+                }
+                else
+                {
+                    newAddress = 0;
+                }
+            }
+            else if(changeAddress == DOWN)
+            {
+                if(address != 0)
+                {
+                    newAddress = address - 1;
+                }
+                else
+                {
+                    newAddress = 3;
+                }
+            }
+        }
+    }
+
+    buttonInterruptFlag = newAddress;
+}
 
 /* USER CODE END 4 */
 
