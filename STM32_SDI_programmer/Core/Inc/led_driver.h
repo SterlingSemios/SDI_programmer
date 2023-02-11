@@ -25,6 +25,11 @@ typedef struct Led
     uint16_t pin;
 } Led;
 
+/**
+ * @brief Function to set the LED display to desired digit
+ *
+ * @param[in] digit Requested LED display digit
+ */
 void setDigit(char digit);
 
 #endif /* LED_DRIVER */

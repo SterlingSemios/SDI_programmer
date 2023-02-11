@@ -35,9 +35,9 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define STD_WAIT_SENRESP_MS     (150)         /**< @brief SDI12 wait time for response as per standard*/
-#define SDI_STANDARD_WAIT_MS    (750)         /**< @brief SDI12 standard wait time for Address change and Identification command response as per standard*/
-#define MAX_INIT_TIME           (6)           /**< @brief Max time in ms from uart init to address read command*/
+#define STD_WAIT_SENRESP_MS     (150) /**< @brief SDI12 wait time for response as per standard*/
+#define SDI_STANDARD_WAIT_MS    (750) /**< @brief SDI12 standard wait time for Address change and Identification command response as per standard*/
+#define MAX_INIT_TIME           (6)   /**< @brief Max time in ms from uart init to address read command*/
 
 /* USER CODE END PD */
 
@@ -51,7 +51,8 @@ UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-int buttonInterruptFlag = -1;
+char         addressArr[]        = {'0', '1', '2', '3'};
+int          buttonInterruptFlag = -1;
 Sdi12Handle *interruptSdiHandle;
 
 /* USER CODE END PV */
@@ -78,14 +79,13 @@ static void MX_USART1_UART_Init(void);
 int main(void)
 {
     /* USER CODE BEGIN 1 */
-    char         log[250];
-    char         address_buf = {0};
-    char         rxbuf[250];
-    int          rxSize       = 250;
-    char         addressArr[] = {'0', '1', '2', '3'};
-    SDI12RetCode retStat      = 0;
-    int          startTime    = HAL_GetTick();
-    int          initCompleteTime;
+    char         log[250]         = {0};
+    char         address_buf      = {0};
+    char         rxbuf[250]       = {0};
+    int          rxSize           = 250;
+    SDI12RetCode retStat          = 0;
+    int          startTime        = HAL_GetTick();
+    int          initCompleteTime = 0;
 
     /* USER CODE END 1 */
 
@@ -110,7 +110,7 @@ int main(void)
     MX_USART2_UART_Init();
     MX_USART1_UART_Init();
     /* USER CODE BEGIN 2 */
-    //Init SDI handles
+    // Init SDI handles
     Sdi12PortPinMap sdiTxEnb =
     {
         .pGpioPort = SDI_TX_ENB_GPIO_Port,
@@ -149,13 +149,13 @@ int main(void)
     printLog("          ---");
     initCompleteTime = HAL_GetTick();
 
-    //Request SDI-12 sensor address
+    // Request SDI-12 sensor address
     retStat = sdi12_BusCommunication(&sensorHandle, Sdi12Resp.recBuf,
                                      &Sdi12Resp.recSize, STD_WAIT_SENRESP_MS,
                                      SDI12_QUERY_ADDR);
     sensorHandle.sdi12IdNewOrQuery = Sdi12Resp.recBuf[0];
 
-    //SDI responses are very sensitive to power on -> first query time
+    // SDI responses are very sensitive to power on -> first query time
     if (initCompleteTime - startTime > MAX_INIT_TIME)
     {
         sprintf(log, "Warning, init time of %d is too long, SDI may not respond",
@@ -174,7 +174,7 @@ int main(void)
         setDigit(sensorHandle.sdi12IdNewOrQuery);
     }
 
-    //Let sensor settle before first possible address change
+    // Let sensor settle before first possible address change
     HAL_Delay(STD_WAIT_SENRESP_MS);
 
     /* USER CODE END 2 */
@@ -192,7 +192,7 @@ int main(void)
             sensorHandle.sdi12Address      = sensorHandle.sdi12IdNewOrQuery;
             sensorHandle.sdi12IdNewOrQuery = addressArr[buttonInterruptFlag];
 
-            //Request SDI-12 sensor address change
+            // Request SDI-12 sensor address change
             retStat = sdi12_BusCommunication(&sensorHandle, Sdi12Resp.recBuf,
                                              &Sdi12Resp.recSize, SDI_STANDARD_WAIT_MS,
                                              SDI12_CHANGE_ADDR);
@@ -246,8 +246,8 @@ void SystemClock_Config(void)
 
     /** Initializes the CPU, AHB and APB buses clocks
      */
-    RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
-                                  | RCC_CLOCKTYPE_PCLK1;
+    RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK |
+                                  RCC_CLOCKTYPE_PCLK1;
     RCC_ClkInitStruct.SYSCLKSource   = RCC_SYSCLKSOURCE_HSI;
     RCC_ClkInitStruct.AHBCLKDivider  = RCC_SYSCLK_DIV1;
     RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
@@ -354,8 +354,9 @@ static void MX_GPIO_Init(void)
     __HAL_RCC_GPIOD_CLK_ENABLE();
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11 | GPIO_PIN_12 | GPIO_PIN_13 | GPIO_PIN_14
-                      | GPIO_PIN_15 | SDI_TX_ENB_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOB,
+                      GPIO_PIN_11 | GPIO_PIN_12 | GPIO_PIN_13 | GPIO_PIN_14 | GPIO_PIN_15 | SDI_TX_ENB_Pin,
+                      GPIO_PIN_RESET);
 
     /*Configure GPIO pin Output Level */
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8 | GPIO_PIN_9, GPIO_PIN_RESET);
@@ -368,8 +369,7 @@ static void MX_GPIO_Init(void)
 
     /*Configure GPIO pins : PB11 PB12 PB13 PB14
      *                       PB15 */
-    GPIO_InitStruct.Pin = GPIO_PIN_11 | GPIO_PIN_12 | GPIO_PIN_13 | GPIO_PIN_14
-                          | GPIO_PIN_15;
+    GPIO_InitStruct.Pin   = GPIO_PIN_11 | GPIO_PIN_12 | GPIO_PIN_13 | GPIO_PIN_14 | GPIO_PIN_15;
     GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull  = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -407,16 +407,15 @@ static void MX_GPIO_Init(void)
 void triggerAddressChange(addrChangeType changeAddress)
 {
     int maxAddress = 3;
-    char addressArr[]=  {'0', '1', '2', '3'};
     int newAddress = 0;
 
-    for(int address = 0; address <= maxAddress; address++)
+    for (int address = 0; address <= maxAddress; address++)
     {
-        if(strncmp(&interruptSdiHandle->sdi12IdNewOrQuery, &addressArr[address], 1) == 0)
+        if (strncmp(&interruptSdiHandle->sdi12IdNewOrQuery, &addressArr[address], 1) == 0)
         {
-            if(changeAddress == UP)
+            if (changeAddress == UP)
             {
-                if(address != 3)
+                if (address != 3)
                 {
                     newAddress = address + 1;
                 }
@@ -425,9 +424,9 @@ void triggerAddressChange(addrChangeType changeAddress)
                     newAddress = 0;
                 }
             }
-            else if(changeAddress == DOWN)
+            else if (changeAddress == DOWN)
             {
-                if(address != 0)
+                if (address != 0)
                 {
                     newAddress = address - 1;
                 }
@@ -459,7 +458,7 @@ void Error_Handler(void)
     /* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef  USE_FULL_ASSERT
+#ifdef USE_FULL_ASSERT
 
 /**
  * @brief  Reports the name of the source file and the source line number

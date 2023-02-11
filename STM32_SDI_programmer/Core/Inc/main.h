@@ -119,6 +119,11 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
+/**
+ * @brief Function called when a button interrupt is received to increment or decrement sensor address
+ *
+ * @param[in] changeAddress Whether address will be incremented or decremented
+ */
 void triggerAddressChange(addrChangeType changeAddress);
 
 /* USER CODE END EFP */

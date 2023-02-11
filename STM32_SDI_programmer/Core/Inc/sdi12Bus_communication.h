@@ -11,7 +11,6 @@
 #ifndef SDI12BUS_COMMUNICATION_H
 #define SDI12BUS_COMMUNICATION_H
 
-//#include "sdi12_driver.h"
 #include "main.h"
 
 #include <stdio.h>
