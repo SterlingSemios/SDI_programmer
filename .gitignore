@@ -3,5 +3,6 @@
 .vscode
 
 Debug/
+Semios/
 
 *.so
