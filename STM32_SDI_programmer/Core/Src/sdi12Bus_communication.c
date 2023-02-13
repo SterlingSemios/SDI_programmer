@@ -285,7 +285,6 @@ SDI12RetCode sdi12_BusCommunication(Sdi12Handle *hSdi12, char *rxBuf,
 
     // wakeup signal for sensors on sdi12 bus
     rv = sdi12_wakeUpSignal(hSdi12->hUART, &(hSdi12->Sdi12PinCfg));
-    //printLog("SSMITH post wakeup");
     if (rv != SDI12RetCode_OK)
     {
         return (SDI12RetCode_ERROR);
@@ -303,7 +302,6 @@ SDI12RetCode sdi12_BusCommunication(Sdi12Handle *hSdi12, char *rxBuf,
 
     //read received data
     rv = sdi12_readResponse(rxSize, rxBuf, rxTimeout);
-    //printLog(rxBuf);
     if (rv != SDI12RetCode_OK)
     {
         return (SDI12RetCode_RX_ERROR);

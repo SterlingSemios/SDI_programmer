@@ -21,8 +21,8 @@
 
 typedef struct Led
 {
-    GPIO_TypeDef* port;
-    uint16_t pin;
+    GPIO_TypeDef *port;
+    uint16_t      pin;
 } Led;
 
 /**
