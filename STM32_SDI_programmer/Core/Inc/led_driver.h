@@ -14,8 +14,8 @@
  * @date: 10 Feb 2022
  */
 
-#ifndef LED_DRIVER
-#define LED_DRIVER
+#ifndef SEMIOS_LED_DRIVER_H
+#define SEMIOS_LED_DRIVER_H
 
 #include "main.h"
 
@@ -32,4 +32,4 @@ typedef struct Led
  */
 void setDigit(char digit);
 
-#endif /* LED_DRIVER */
+#endif /* SEMIOS_LED_DRIVER_H */

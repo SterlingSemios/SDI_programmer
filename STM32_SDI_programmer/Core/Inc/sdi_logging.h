@@ -14,8 +14,8 @@
  * @date: 10 Feb 2022
  */
 
-#ifndef SDI_LOGGING
-#define SDI_LOGGING
+#ifndef SEMIOS_SDI_LOGGING_H
+#define SEMIOS_SDI_LOGGING_H
 
 #include "main.h"
 
@@ -44,4 +44,4 @@ void printChar(char message);
  */
 void printDebug(const char *message);
 
-#endif /* SDI_LOGGING */
+#endif /* SEMIOS_SDI_LOGGING_H */

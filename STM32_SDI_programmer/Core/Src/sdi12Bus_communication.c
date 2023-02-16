@@ -1,4 +1,12 @@
 /**
+ * Copyright (C) 2021 SemiosBIO Technologies Inc.
+ * All Rights Reserved.
+ *
+ * Unauthorized copying of these files via any medium is strictly prohibited.
+ * Proprietary & Confidential
+ */
+
+/**
  * @file sdi12Bus_communication.c
  * @brief SDI12 bus communication driver (This is a stripped down version of the NodeY v3 SDI12 Driver)
  *        Refer: "https://semios.atlassian.net/wiki/spaces/EM/pages/1509097647/SDI12+Driver+Design+v2.0"
@@ -19,6 +27,7 @@
 #define RECEPTION_MODE         1                    /**< @brief sdi12 reception mode */
 
 #define TX_BUFFER_SIZE         16                   /**< @brief Transmission buffer size in bytes */
+#define CMD_BUFFER_SIZE        9                    /**< @brief Command buffer size */
 
 static uint8_t          flagEnterInSDI12RxMode = 0; /**< @brief Flag to check if driver is in reception mode or not */
 static char             tx_buf[TX_BUFFER_SIZE];     /**< @brief transmission buffer */
@@ -26,7 +35,7 @@ static char             rx_buf[MAX_RESPONSE_SIZE];  /**< @brief Reception buffer
 static volatile uint8_t rxCnt;                      /**< @brief received data counts */
 volatile uint8_t        flagRxComplete;             /**< @brief Flag indication for response ready/ RX complete */
 
-Sdi12Transmit sdi12Tx;
+static Sdi12Transmit sdi12Tx;
 
 static const char strQueryAddr[]  = "?!";                     /**< @brief Query address command */
 static const char strChangeAddr[] = "%cA%c!";                 /**< @brief Change address command */
@@ -62,14 +71,14 @@ static void sdi12_configurePinMode(Sdi12PortPinMap sdiPin, uint8_t mode);
  *
  * @param[out] rxSize Number of bytes received
  * @param[out] sdiRxData fill up received data
- * @param[in] timeout response wait time
+ * @param[in] responseDelay response wait time
  *
  * @return SDI12RetCode type
  *         SDI12RetCode_RX_ERROR - RX related error
  *         SDI12RetCode_OK - reception and data reading is successful
  */
 static SDI12RetCode sdi12_readResponse(uint8_t *rxSize, char *sdiRxData,
-                                       uint16_t timeout);
+                                       uint16_t responseDelay);
 
 /**
  * @brief Function to create desired command with appropriate addresses
@@ -137,7 +146,7 @@ static SDI12RetCode sdi12_createCmdBuf(Sdi12Handle *hSdi12, SDI12Cmd commandNum)
 {
     NULL_PTR_CHECK(hSdi12, SDI12RetCode_INVALID);
 
-    char buf[sizeof("%cCC%c!") + 1] = {'\0'};
+    char buf[CMD_BUFFER_SIZE] = {'\0'};
 
     memset(tx_buf, '\0', strlen(tx_buf));
     switch (commandNum)
@@ -217,12 +226,12 @@ static SDI12RetCode sdi12_sendCmd(Sdi12Handle *hSdi12)
 }
 
 static SDI12RetCode sdi12_readResponse(uint8_t *rxSize, char *sdiRxData,
-                                       uint16_t timeout)
+                                       uint16_t responseDelay)
 {
     NULL_PTR_CHECK(sdiRxData, SDI12RetCode_ERROR);
 
     //
-    HAL_Delay(timeout);
+    HAL_Delay(responseDelay);
 
     //clean previous responses, if any
     memset(sdiRxData, '\0', strlen(sdiRxData));

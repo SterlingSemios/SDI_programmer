@@ -17,7 +17,7 @@
 #include "led_driver.h"
 #include "string.h"
 
-#define MAX_SENSOR_ADDRESS    4 //Sensor address of "4" corresponds to an "8" for address failed to read
+#define MAX_SENSOR_ADDRESS    4 //Sensor address of "4" corresponds to an "-" for address failed to read
 
 Led ledConfig[7] =
 {
@@ -36,7 +36,7 @@ uint8_t HexDisplayCode[10] =
     0b0011000, // 1
     0b0110111, // 2
     0b0111110, // 3
-    0b1111111, // 8
+    0b0000100, // -
 };
 
 /**

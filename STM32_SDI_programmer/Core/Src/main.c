@@ -26,6 +26,8 @@
 #include "led_driver.h"
 #include "sdi12Bus_communication.h"
 
+#include <stdlib.h>
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -39,6 +41,8 @@
 #define SDI_STANDARD_WAIT_MS    (750) /**< @brief SDI12 standard wait time for Address change and Identification command response as per standard*/
 #define MAX_INIT_TIME           (6)   /**< @brief Max time in ms from uart init to address read command*/
 #define IDLE_TIME_SEC           (10)  /**< @brief Max time in seconds that the programmer will remain idle before suspending*/
+#define CYCLE_DELAY             (50)  /**< @brief Main program loop cycle delay*/
+#define MAX_SDI_ADDRESS         (3)   /**< @brief Max address an SDI sensor can have*/
 
 /* USER CODE END PD */
 
@@ -156,7 +160,7 @@ int main(void)
     /* USER CODE BEGIN WHILE */
     while (1)
     {
-        if (idleCycles == IDLE_TIME_SEC * 20)
+        if (idleCycles >= IDLE_TIME_SEC * 20)
         {
             //Suspend programmer if left idle
             printLog("Entering STOP mode");
@@ -180,7 +184,6 @@ int main(void)
                 printLog("Error: Failed to read sensor address");
                 setDigit(addressNotFound);
                 HAL_Delay(STD_WAIT_SENRESP_MS); //Give SDI a break before querying again
-                idleCycles += 3;
             }
             else
             {
@@ -189,11 +192,15 @@ int main(void)
                 setDigit(sensorHandle.sdi12IdNewOrQuery);
                 addressReadFlag = READ;
             }
+
+            //This call takes 400ms
+            idleCycles += 8;
         }
+
 
         if (buttonInterruptFlag == -1)
         {
-            HAL_Delay(50);
+            HAL_Delay(CYCLE_DELAY);
             idleCycles++;
         }
         else
@@ -415,36 +422,16 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 void triggerAddressChange(addrChangeType changeAddress)
 {
-    int maxAddress = 3;
-    int newAddress = 0;
+    unsigned int newAddress = 0;
+    unsigned int sensorAddr = atoi(&interruptSdiHandle->sdi12IdNewOrQuery);
 
-    for (int address = 0; address <= maxAddress; address++)
+    if(changeAddress == UP)
     {
-        if (strncmp(&interruptSdiHandle->sdi12IdNewOrQuery, &addressArr[address], 1) == 0)
-        {
-            if (changeAddress == UP)
-            {
-                if (address != 3)
-                {
-                    newAddress = address + 1;
-                }
-                else
-                {
-                    newAddress = 0;
-                }
-            }
-            else if (changeAddress == DOWN)
-            {
-                if (address != 0)
-                {
-                    newAddress = address - 1;
-                }
-                else
-                {
-                    newAddress = 3;
-                }
-            }
-        }
+        newAddress = (sensorAddr + 1) % (MAX_SDI_ADDRESS + 1);
+    }
+    else if(changeAddress == DOWN)
+    {
+        newAddress = (sensorAddr - 1) % (MAX_SDI_ADDRESS + 1);
     }
 
     buttonInterruptFlag = newAddress;

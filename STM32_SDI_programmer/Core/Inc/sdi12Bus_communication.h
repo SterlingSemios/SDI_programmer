@@ -20,6 +20,66 @@
 #define NULL_PTR_CHECK(ptr, errNumber)    if (ptr == NULL) return errNumber; /**< @brief Macro for NULL pointer check */
 
 /**
+ * @brief Enum type for possible SDI12 return code / status code
+ */
+typedef enum
+{
+    SDI12RetCode_BUSY = -10,           /**< @brief SDI12 bus busy */
+    SDI12RetCode_PWR_ERROR,            /**< @brief SDI12 power related error */
+    SDI12RetCode_TX_ERROR,             /**< @brief SDI12 transmission error */
+    SDI12RetCode_RX_ERROR,             /**< @brief SDI12 reception error */
+    SDI12RetCode_ADDRESS_IN_USE,       /**< @brief SDI12 address already in use */
+    SDI12RetCode_ADDRESS_DUPLICATE,    /**< @brief SDI12 address is duplicate - mainly used for address change */
+    SDI12RetCode_ADDRESS_INVALID,      /**< @brief SDI12 address invalid */
+    SDI12RetCode_CRC_ERROR,            /**< @brief SDI12 command response CRC does not match */
+    SDI12RetCode_INVALID,              /**< @brief SDI12 unknown / invalid behavior */
+    SDI12RetCode_ERROR,                /**< @brief SDI12 general failure or error */
+    SDI12RetCode_OK,                   /**< @brief SDI12 communication OK */
+}SDI12RetCode;
+
+/**
+ * @brief To specify port and pin mapping for SDI12
+ */
+typedef struct __Sdi12PortPinMap_t
+{
+    GPIO_TypeDef *pGpioPort;   /**< @brief gpio port */
+    uint16_t      gpioPin;     /**< @brief gpio pin number */
+}
+Sdi12PortPinMap;
+
+/**
+ * @brief SDI12 pin configuration
+ */
+typedef struct __Sdi12PinConfig_t
+{
+    Sdi12PortPinMap sdiPwrMain;                        /**< @brief SDI12 5V power pin */
+    Sdi12PortPinMap sdiTxEnb;                          /**< @brief SDI12 transmit enable pin */
+    Sdi12PortPinMap sdiTx;                             /**< @brief SDI12 transmission pin */
+}
+Sdi12PinConfig;
+
+/**
+ * @brief Structure for SDI12 handle
+ */
+typedef struct __Sdi12Handle_t
+{
+    UART_HandleTypeDef *hUART;                    /**< @brief UART handle */
+    Sdi12PinConfig      Sdi12PinCfg;              /**< @brief SDI12 bus related pin configuration */
+    char                sdi12Address;             /**< @brief SDI12 sensor address */
+    char                sdi12IdNewOrQuery;        /**< @brief This field is used for query and address change command only */
+}
+Sdi12Handle;
+
+/**
+ * @brief Structure to hold SDI12 responses
+ */
+typedef struct __Sdi12Receive_t
+{
+    char   *recBuf;    /**< @brief buffer to receive data */
+    uint8_t recSize;   /**< @brief size of data received */
+}Sdi12Receive;
+
+/**
  * @brief Structure to hold transmission data/command
  */
 typedef struct __Sdi12Transmit_t
